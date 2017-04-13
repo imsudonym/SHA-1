@@ -8,20 +8,21 @@ public class SHA1{
 	private String A, B, C, D, E;
 		
 	private String string = "";
+	private String[] msgDigest; 
 	private String tempString = "";
 	private String[] ascii;
 	private String[] chunks;
-	private String[] words = new String[80];
+	private String[] words;
 	private String binary = "";
 	private int lengthOfBinary;	
 	
 	
 	public SHA1(String[] string){
 		
-		String[] msgDigest = new String[string.length];
+		msgDigest = new String[string.length];
 		
-		for(int j = 0; j < msgDigest.length; j++){
-			
+		for(int j = 0; j < string.length; j++){
+						
 			init();
 			prepString(string[j]);
 			appendLength();			
@@ -333,8 +334,9 @@ public class SHA1{
 		}
 	}
 	
-	private void chunkToWords(String binary){
-			
+	private void chunkToWords(String binary){			
+		words = new String[80];
+				
 		int index = 0;
 		int index2 = index + 32;
 		
