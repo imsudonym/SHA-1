@@ -17,10 +17,7 @@ public class Sha1{
 	
 	
 	public Sha1(){
-		
-		System.out.println("h0 = " + h0 + "\nh1 = " + h1 + "\nh2 = " + h2 + "\nh3 = " + h3 + "\nh4 = " + h4);		
-		System.out.println("Input text: \t" + string);
-		
+					
 		ascii = new String[string.length()];
 		
 		for(int i = 0; i < string.length(); i++){
@@ -28,36 +25,24 @@ public class Sha1{
 			
 			ascii[i] = "";
 			
-			//	convert decimal ascii value to binary
+			//	decimal ascii of each character to binary ascii
 			while(val > 0){
 				tempString +=  val%2;
 				val /= 2;
 			}
 			
-			//	add zero to binary ascii to make it of length 8
+			// make sure binary digits are of length 8
 			int val1 = 8 - tempString.length();			
 			if((val1) > 0){			
 				for(int k = 0; k < val1; k++)
 					tempString += "0";
 			}				
-			
-			for(int j = tempString.length()-1; j >= 0 ; j--){
-				ascii[i] += tempString.charAt(j);
-			}					
-			
-			
-			
+						
+			ascii[i] = reverseString(tempString);				
+
 			tempString = "";
 		}
-			
-		//////////////////////////////////////////
-		System.out.print("Text to ASCII: \t");
-		for(int i = 0; i < ascii.length; i++){
-			System.out.print(ascii[i]+ "\t");
-		}
-		
-		System.out.println();
-		
+					
 		//	put the values together
 		for(int i = 0; i < ascii.length; i++)
 			binary += ascii[i];
@@ -73,7 +58,9 @@ public class Sha1{
 		appendLength();		
 		chunkToWords(binary);
 		extendTo80();		
+		
 		String msgDigest = generateDigest();
+		System.out.println("msgDigest = " + msgDigest);
 	}
 	
 
