@@ -5,6 +5,7 @@ public class Sha1{
 	private static String h2 = "10011000101110101101110011111110";
 	private static String h3 = "00010000001100100101010001110110";
 	private static String h4 = "11000011110100101110000111110000";
+	private static String A, B, C, D, E;
 	
 	private static String string = "vuqliyxzutmrbgdbflwywakvnfmeyjujwfyjdtqtioczhdzukirwcmtt";
 	private static String tempString = "";
@@ -62,23 +63,40 @@ public class Sha1{
 		binary += "1";						
 		int zeroesToAdd = initLength-binary.length();
 		
+		System.out.println(binary);
+		System.out.println("zeroesToAdd: " + zeroesToAdd);
+		
 		for(int i = 0; i < zeroesToAdd; i++)
 			binary += "0";				
 		
-		appendLength();	
+		appendLength();			
 		chunkTo512(binary);		
 		for(int i = 0; i < chunks.length; i++){
+			System.out.println("chunk 0: " + chunks[i]);
 			chunkToWords(chunks[i]);
+			extendTo80();
+			generateBinaryDigest();
 		}
-		extendTo80();		
 		
-		msgDigest += generateDigest();
+		msgDigest = convertBinaryDigestToHex();
+		
 		System.out.println("msgDigest = " + msgDigest);
 	}
 	
-
-	private String generateDigest(){
-		String A = h0, B = h1, C = h2, D = h3, E = h4;
+	private String convertBinaryDigestToHex(){
+		String msgDigest = convertToHex(h0) + convertToHex(h1) + convertToHex(h2) + convertToHex(h3) + convertToHex(h4);
+		return msgDigest;
+	}
+	
+	private void generateBinaryDigest(){
+		A = h0; B = h1; C = h2; D = h3; E = h4;
+		
+		System.out.println("A = h0: " + A);
+		System.out.println("B = h1: " + B);
+		System.out.println("C = h2: " + C);
+		System.out.println("A = h3: " + D);
+		System.out.println("E = h4: " + E);
+		
 		String F = "", K = "";
 		String temp = "";
 		
@@ -86,11 +104,12 @@ public class Sha1{
 			
 			if(i >= 0 && i <= 19){											
 				F = function1(B,C,D);				
-				K = "01011010100000100111100110011001";												
+				K = "01011010100000100111100110011001";	
+					 
 			}						
 			if(i >= 20 && i <= 39){
 				F = function2(B, C, D);
-				K = "01101110110110011110101110100001";
+				K = "01101110110110011110101110100001";					 
 			}
 			
 			if(i >= 40 && i <= 59){
@@ -100,26 +119,42 @@ public class Sha1{
 			
 			if(i >= 60 && i <= 79){
 				F = function2(B,C,D);
-				K = "11001010011000101100000111010110";
+				K = "11001010011000101100000111010110";					 
 			}
+			
+			
+			System.out.println("Generating Temp for Word " + i);
 
-			temp = addBinary(addBinary(addBinary(addBinary(leftRot(5, A), F), E ), K ), words[i]);	
+			temp = addBinary(addBinary(addBinary(addBinary(leftRot(5, A), F), E ), K ), words[i]);						
 			
 			if(temp.length() - 32 > 0)
-				temp = temp.substring(temp.length()-32, temp.length());						
+				temp = temp.substring(temp.length()-32, temp.length());		
+			
+			System.out.println("truncated temp: " + temp);
 			
 			E = D;
 			D = C;
 			C = leftRot(30, B);
 			B = A;
 			A = temp;
-		}
 			
+			if(i == 7){
+			System.out.println("E = D: " + E);
+			System.out.println("D = C: " + D);
+			System.out.println("C: " + C);
+			System.out.println("B = A: " + B);
+			System.out.println("A = temp: " + A);
+			System.out.println();
+			}
+		}
+					
+		System.out.println("Main Loop Ended...");
 		h0 = addBinary(h0, A);		
 		h1 = addBinary(h1, B);
 		h2 = addBinary(h2, C);	
 		h3 = addBinary(h3, D);	
 		h4 = addBinary(h4, E);
+
 		
 		if(h0.length() > 32)
 			h0 = h0.substring(h0.length()-32, h0.length());
@@ -131,35 +166,63 @@ public class Sha1{
 			h3 = h3.substring(h3.length()-32, h3.length());
 		if(h4.length() > 32)
 			h4 = h4.substring(h4.length()-32, h4.length());
-				
-		String msgDigest = convertToHex(h0) + convertToHex(h1) + convertToHex(h2) + convertToHex(h3) + convertToHex(h4);
+			
+		System.out.println("h0 truncated: " + h0);
+		System.out.println("h1 truncated: " + h1);
+		System.out.println("h2 truncated: " + h2);
+		System.out.println("h3 truncated: " + h3);
+		System.out.println("h4 truncated: " + h4);
+		System.out.println();
 		
-		return msgDigest;
 	}
 	
-	private String leftRot(int val, String A){
+	private String leftRot(int val, String A){		
 		return A.substring(val, A.length()) + A.substring(0, val);
 	}
 		
 	private String addBinary(String sum1, String sum2){
 		
+		System.out.println("||sum1: " + sum1 + "\n||sum2: " + sum2);
+		
 		long num1 = Long.parseLong(sum1, 2);
 		long num2 =  Long.parseLong(sum2, 2);
-		
 		long sum = (num1 + num2);		
 
-		return toBinaryString(sum);
+		//System.out.println("sum: " + sum);		
+		
+		String temp = toBinaryString(sum);
+		
+		//System.out.println("temp: " + temp);
+		
+		if(temp.length() == sum1.length()){
+			temp = "1" + temp;
+		}else if(temp.length() < sum1.length()){
+			
+			for(int i = 0; i < sum1.length()-temp.length(); i++){
+				temp = "0" + temp;
+			}
+			
+			temp = "1" + temp;
+		}
+		
+		System.out.println("temp: " + temp);
+				
+		return temp;
 	}
 	
-	private String toBinaryString(long number){				
+	private String toBinaryString(long number){						
 		
 		String str = "";
 		
+		int ctr = 0;
+		
 		while(number > 0){
 			str += number % 2;
-			number /= 2;
+			number /= 2;			
+			ctr++;
 		}
-
+		
+		//System.out.println("ctr = " + ctr);
 		str = reverseString(str);
 		
 		return str;
@@ -258,9 +321,9 @@ public class Sha1{
 			for(int i = 0; i < val; i++)
 				temp += "0";
 		}
-		
-		for(int i = temp.length()-1; i >= 0; i--)
-			binary += temp.charAt(i);
+				
+		binary += reverseString(temp);
+		System.out.println("---|| binary lenght: " + binary.length());
 	}
 	
 	private void chunkTo512(String binary){
@@ -275,7 +338,7 @@ public class Sha1{
 			chunks[i] = binary.substring(index, index2);
 			
 			index = index2;
-			index2 = index2+512;
+			index2 = index2 + 512;
 		}
 	}
 	
@@ -289,6 +352,8 @@ public class Sha1{
 		for(int i = 0; i < 16; i++){
 			
 			words[i] = binary.substring(index, index2);
+			
+			//System.out.println( i + ". " + words[i]);
 			
 			index = index2;
 			index2 = index2+32;
@@ -304,6 +369,8 @@ public class Sha1{
 			result = XOR(XOR(XOR(words[i-3], words[i-8]), words[i-14]), words[i-16]);
 			result = leftRotation(result);
 			words[i] = result;
+						
+			//System.out.println( words[i]);
 		}
 		
 	}
