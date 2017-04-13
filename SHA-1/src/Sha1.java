@@ -186,22 +186,24 @@ public class Sha1{
 		
 		long num1 = Long.parseLong(sum1, 2);
 		long num2 =  Long.parseLong(sum2, 2);
-		long sum = (num1 + num2);		
-
-		//System.out.println("sum: " + sum);		
+		long sum = (num1 + num2);				
 		
-		String temp = toBinaryString(sum);
-		
-		//System.out.println("temp: " + temp);
+		String temp = toBinaryString(sum);		
 		
 		if(temp.length() == sum1.length()){
 			temp = "1" + temp;
 		}else if(temp.length() < sum1.length()){
 			
-			for(int i = 0; i < sum1.length()-temp.length(); i++){
+			System.out.println("temp.length(): " + temp.length());
+			System.out.println("sum1.length(): " + sum1.length());
+			
+			int length = sum1.length()-temp.length();
+			int i;
+			for(i = 0; i < length; i++){
 				temp = "0" + temp;
 			}
 			
+			System.out.println("i: " + i);
 			temp = "1" + temp;
 		}
 		
