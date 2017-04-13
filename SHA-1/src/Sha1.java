@@ -1,5 +1,3 @@
-import java.math.BigInteger;
-
 public class Sha1{
 	
 	private static String h0 = "01100111010001010010001100000001";
@@ -8,12 +6,14 @@ public class Sha1{
 	private static String h3 = "00010000001100100101010001110110";
 	private static String h4 = "11000011110100101110000111110000";
 	
-	private static String string = "A Test";
+	private static String string = "vuqliyxzutmrbgdbflwywakvnfmeyjujwfyjdtqtioczhdzukirwcmtt";
 	private static String tempString = "";
 	private static String[] ascii;
+	private static String[] chunks;
 	private static String[] words = new String[80];
 	private static String binary = "";
 	private static int lengthOfBinary;
+	private String msgDigest = ""; 
 	
 	
 	public Sha1(){
@@ -25,9 +25,9 @@ public class Sha1{
 			
 			ascii[i] = "";
 			
-			//	decimal ascii of each character to binary ascii
+			//	decimal ASCII of each character to binary ASCII
 			while(val > 0){
-				tempString +=  val%2;
+				tempString +=  val % 2;
 				val /= 2;
 			}
 			
@@ -47,19 +47,32 @@ public class Sha1{
 		for(int i = 0; i < ascii.length; i++)
 			binary += ascii[i];
 		
-		lengthOfBinary = binary.length();		
-		binary += "1";		
+		lengthOfBinary = binary.length();
 		
-		int zeroesToAdd = 448-binary.length();
+		System.out.println("length of binary: " + lengthOfBinary);
+		
+		int initLength = 448;
+		
+		while(lengthOfBinary >= initLength){
+			initLength += 512;
+		}
+		
+		System.out.println("initLength: " + initLength);
+		
+		binary += "1";						
+		int zeroesToAdd = initLength-binary.length();
 		
 		for(int i = 0; i < zeroesToAdd; i++)
 			binary += "0";				
 		
-		appendLength();		
-		chunkToWords(binary);
+		appendLength();	
+		chunkTo512(binary);		
+		for(int i = 0; i < chunks.length; i++){
+			chunkToWords(chunks[i]);
+		}
 		extendTo80();		
 		
-		String msgDigest = generateDigest();
+		msgDigest += generateDigest();
 		System.out.println("msgDigest = " + msgDigest);
 	}
 	
@@ -101,36 +114,12 @@ public class Sha1{
 			B = A;
 			A = temp;
 		}
-		
-		System.out.println("h0: " + h0);
-		System.out.println("A: " + A);		
-
-		h0 = addBinary(h0, A);
-		System.out.println("h0: " + h0);
-		
-		System.out.println("h1: " + h1);
-		System.out.println("B: " + B);
-		
+			
+		h0 = addBinary(h0, A);		
 		h1 = addBinary(h1, B);
-		System.out.println("h1: " + h1);
-		
-		System.out.println("h2: " + h2);
-		System.out.println("C: " + C);
-		
-		h2 = addBinary(h2, C);
-		System.out.println("h2: " + h2);
-		
-		System.out.println("h3: " + h3);
-		System.out.println("D: " + D);
-		
-		h3 = addBinary(h3, D);
-		System.out.println("h3: " + h3);
-		
-		System.out.println("h4: " + h4);
-		System.out.println("E: " + E);
-		
+		h2 = addBinary(h2, C);	
+		h3 = addBinary(h3, D);	
 		h4 = addBinary(h4, E);
-		System.out.println("h4: " + h4);
 		
 		if(h0.length() > 32)
 			h0 = h0.substring(h0.length()-32, h0.length());
@@ -142,34 +131,20 @@ public class Sha1{
 			h3 = h3.substring(h3.length()-32, h3.length());
 		if(h4.length() > 32)
 			h4 = h4.substring(h4.length()-32, h4.length());
-		
-		System.out.println("\n\nh0: " + h0 + "\nh1: " + h1 + "\nh2: " + h2 + "\nh3: " + h3 + "\nh4: " + h4);
-		
-		System.out.println("Invoke convertToHex()");
+				
 		String msgDigest = convertToHex(h0) + convertToHex(h1) + convertToHex(h2) + convertToHex(h3) + convertToHex(h4);
 		
 		return msgDigest;
 	}
 	
 	private String leftRot(int val, String A){
-		//System.out.println("Left rotation " + val + ": " + (A.substring(val, A.length()) + A.substring(0, val)));
-		//System.out.println("VAAAAAAAAAAAL HEEERRRRRRE: " + val);
-		//System.out.println("LEngth of String A: " +  A.length());
-		String temp = A.substring(0, val);
-		return A.substring(val, A.length()) + temp;
+		return A.substring(val, A.length()) + A.substring(0, val);
 	}
 		
 	private String addBinary(String sum1, String sum2){
 		
-		//System.out.println("	||Inside addBinary");
-		//System.out.println("	||sum1: " + sum1);
-		//System.out.println("	||sum2: " + sum2);		
-		
 		long num1 = Long.parseLong(sum1, 2);
 		long num2 =  Long.parseLong(sum2, 2);
-		
-		//System.out.println("	||num1: " + num1);
-		//System.out.println("	||num2: " + num2);
 		
 		long sum = (num1 + num2);		
 
@@ -177,6 +152,7 @@ public class Sha1{
 	}
 	
 	private String toBinaryString(long number){				
+		
 		String str = "";
 		
 		while(number > 0){
@@ -195,8 +171,7 @@ public class Sha1{
 		for(int i = str.length()-1; i >= 0; i--){
 			reversedString += str.charAt(i);
 		}
-		
-		//System.out.println("reversedString: " + reversedString);
+
 		return reversedString;
 	}
 	
@@ -204,57 +179,20 @@ public class Sha1{
 		return Long.toString(Long.parseLong(binaryStr, 2), 16);
 	}
 	
-	private String function1(String B, String C, String D){		
-		System.out.println("---------------------------");
-		
-		System.out.println("!B: " + NOT(B) + "\nD: " + D);
-		System.out.println("!B AND D: " + AND(NOT(B), D));
-		
-		System.out.println("B: " + B + "\nC: " + C);
-		System.out.println("B AND C: " + AND(B, C));
-		
-		System.out.println("(!B AND D) or (B AND C): " + OR(AND(B, C), AND(NOT(B), D)));
-		
-		System.out.println("---------------------------");
-		
+	private String function1(String B, String C, String D){				
 		return OR(AND(B, C), AND(NOT(B), D));
 	}
 	
 	private String function2(String B, String C, String D){
-		System.out.println("---------------------------");
-		
-		System.out.println("B: " + B + "\nC: " + C);
-		System.out.println("B XOR C: " + XOR(B, C));
-		System.out.println("B XOR C XOR D: " + XOR(XOR(B, C), D));
-		
-		System.out.println("---------------------------");		
-		
 		return XOR(XOR(B, C), D);
 	}
 	
-	private String function3(String B, String C, String D){
-		
-		System.out.println("---------------------------");
-		
-		System.out.println("B: " + B + "\nC: " + C);
-		System.out.println("B AND C: " + AND(B, C));			
-		
-		System.out.println("B: " + B + "\nD: " + D);
-		System.out.println("B AND D: " + AND(B, D));
-				
-		System.out.println("(B AND C) OR (B AND D): " + OR(AND(B, C), AND(B, D)));
-		
-		System.out.println("C: " + C + "\nD: " + D);
-		System.out.println("C AND D: " + AND(C, D));
-				
-		System.out.println("(B AND C) OR (B AND D) OR (C AND D): " + OR(OR(AND(B, C), AND(B, D)), AND(C, D)));
-				
-		System.out.println("---------------------------");
-		
+	private String function3(String B, String C, String D){	
 		return OR(OR(AND(B, C), AND(B, D)), AND(C, D));
 	}
 	
 	private String OR(String A, String B){
+		
 		String AorB = "";
 		
 		for(int i = 0 ; i < A.length(); i++){
@@ -269,8 +207,7 @@ public class Sha1{
 						
 		}
 		
-		return AorB;
-		
+		return AorB;		
 	}
 	
 	private String NOT(String A){
@@ -286,7 +223,9 @@ public class Sha1{
 		
 		return notA;
 	}
+	
 	private String AND(String A, String B){
+	
 		String AandB = "";
 		
 		for(int i = 0; i < A.length(); i++){
@@ -303,10 +242,14 @@ public class Sha1{
 	}
 	
 	private void appendLength(){
+		
 		String temp = "";
+		
 		while(lengthOfBinary > 0){
-			temp += lengthOfBinary%2;
+			
+			temp += lengthOfBinary % 2;
 			lengthOfBinary /= 2;
+			
 		}		
 		
 		if(temp.length() < 64){
@@ -320,10 +263,29 @@ public class Sha1{
 			binary += temp.charAt(i);
 	}
 	
-	private static void chunkToWords(String binary){
+	private void chunkTo512(String binary){
+		
+		chunks = new String[binary.length()/512];
+		
+		int index = 0;
+		int index2 = index + 512;
+		
+		for(int i = 0; i < binary.length()/512; i++){
+			
+			chunks[i] = binary.substring(index, index2);
+			
+			index = index2;
+			index2 = index2+512;
+		}
+	}
+	
+	private void chunkToWords(String binary){
+		
+		System.out.println("Inside chunkToWords");
 		
 		int index = 0;
 		int index2 = index + 32;
+		
 		for(int i = 0; i < 16; i++){
 			
 			words[i] = binary.substring(index, index2);
@@ -338,6 +300,7 @@ public class Sha1{
 		String result;
 		
 		for(int i = 16; i < 80; i++){
+			
 			result = XOR(XOR(XOR(words[i-3], words[i-8]), words[i-14]), words[i-16]);
 			result = leftRotation(result);
 			words[i] = result;
@@ -352,6 +315,7 @@ public class Sha1{
 	}
 	
 	private String XOR(String word1, String word2){
+		
 		String result = "";
 		
 		for(int i = 0; i < 32; i++){
@@ -377,8 +341,4 @@ public class Sha1{
 	public static void main(String[] args){		
 		new Sha1();
 	}
-	
-	
-			
-	
 }
