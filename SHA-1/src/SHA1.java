@@ -110,8 +110,7 @@ public class SHA1{
 	}
 	
 	private String convertBinaryDigestToHex(){
-		String msgDigest = convertToHex(h0) + convertToHex(h1) + convertToHex(h2) + convertToHex(h3) + convertToHex(h4);
-		return msgDigest;
+		return convertToHex(h0) + convertToHex(h1) + convertToHex(h2) + convertToHex(h3) + convertToHex(h4);
 	}
 	
 	private void generateBinaryDigest(){
@@ -267,6 +266,7 @@ public class SHA1{
 	private String leftRotation(String result){		
 		return result.substring(1, result.length()) + result.toCharArray()[0];
 	}
+	
 	
 	private String addBinary(String sum1, String sum2){
 		
